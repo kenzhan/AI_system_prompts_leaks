@@ -1,3 +1,5 @@
+# ****
+
 # Token Efficiency — Writing Prompts That Don't Waste Budget
 
 Every token you spend on pleasantries, hedging, or redundant context is a token the model uses to generate preamble instead of output. The goal is **maximum signal, minimum noise**.

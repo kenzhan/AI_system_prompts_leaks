@@ -1,3 +1,5 @@
+# ****
+
 # Tool Routing — Directing the Agent to the Right Tool
 
 The agent has many tools: file reads, searches, terminal, browser, code edits. Ambiguous prompts cause it to pick the slowest, most expensive path. Explicit routing saves tokens and turns.

@@ -1,3 +1,5 @@
+# ****
+
 # Orchestration — Multi-Step Tasks, Pipelines, and Subagents
 
 When a task spans multiple files, tools, or decision points, the structure of your prompt determines whether the agent executes efficiently or spirals into unnecessary exploration.
