@@ -1,5 +1,3 @@
-# ****
-
 # Prompt Examples — Level 1 to Level 5
 
 Progressive examples using this repository as the context. Each level introduces more complexity in tool use, orchestration, and output precision.
@@ -25,8 +23,11 @@ Progressive examples using this repository as the context. Each level introduces
 
 **Token delta:** ~40 tokens saved. Zero extra tool calls.
 
-> **System prompt cross-reference:** [`Anthropic/claude-sonnet-5.md`](../../Anthropic/claude-sonnet-5.md)
-> Claude's system prompt opens with the line: *"This iteration of Claude is Claude Sonnet 5."* — explicit naming that eliminates all ambiguity about which product the instructions apply to. Apply the same logic to your prompts: always give the exact file path (`Anthropic/claude-sonnet-5.md`) rather than a description of it (*"the Claude Sonnet 5 system prompt"*). Descriptions require a search to resolve; paths do not.
+> **Textbook example — Claude Sonnet 5 system prompt (identity block):**
+> ```
+> This iteration of Claude is Claude Sonnet 5.
+> ```
+> One declarative sentence. No hedging, no description. The subject is named before anything else is said. Apply the same discipline to your prompts: state the exact target first (`Anthropic/claude-sonnet-5.md`), then the task. A description (*"the Claude Sonnet 5 prompt"*) forces a search step; a path does not.
 
 ---
 
@@ -53,8 +54,18 @@ Progressive examples using this repository as the context. Each level introduces
 
 **Token delta:** ~80 tokens saved. One tool call instead of three (read README → find tables → edit).
 
-> **System prompt cross-reference:** [`Misc/docker-gordon-ai.md`](../../Misc/docker-gordon-ai.md) (Gordon — Docker AI)
-> Gordon's prompt requires: *"SPECIFIC, COMPREHENSIVE plan... mentioning concrete files, commands, and techniques. Not vague ('I'll examine') — specific ('I'll 1) read the Dockerfile...')"*. It also maintains a BANNED WORDS list: *"Perfect", "Great", "Excellent", "Sure", "Absolutely"...* — all the filler that adds tokens without information. Providing the exact row text in your prompt enforces the same discipline on the input side: the model never needs to invent content, and there is no room for filler in the output.
+> **Textbook example — Gordon (Docker AI) system prompt (specificity + banned filler):**
+> ```
+> state a SPECIFIC, COMPREHENSIVE plan as a numbered list mentioning concrete files,
+> commands, and techniques. Not vague ("I'll examine and optimize") — specific
+> ("I'll 1) read the Dockerfile and project structure, 2) apply multi-stage build
+> and layer caching, 3) rebuild and verify size reduction").
+>
+> BANNED WORDS — never write anywhere in any response:
+> "Perfect" "Great" "Excellent" "Awesome" "Wonderful" "Fantastic"
+> "Sure" "Absolutely" "Amazing" "Good"
+> ```
+> Gordon's prompt bans filler on the **output** side. Apply the same rule on the **input** side: remove every word that adds no information. Providing the exact table row text in your prompt means the model never has to invent content — the value is already there, the tool just places it.
 
 ---
 
@@ -80,8 +91,17 @@ Progressive examples using this repository as the context. Each level introduces
 
 **Result:** Agent runs file_search → conditional create → grep → conditional edit. No back-and-forth.
 
-> **System prompt cross-reference:** [`Misc/docker-gordon-ai.md`](../../Misc/docker-gordon-ai.md) (Gordon — Docker AI)
-> Gordon's agent routing reads: *"If you are the best to answer the question according to your description, you can answer it. If another agent is better... call `transfer_task` to transfer the question to that agent."* The system prompt gives the model explicit if/else branches with no ambiguity. Your Level 3 prompt mirrors this exactly: every branch is named, every outcome is defined. Models follow explicit branches reliably — they guess when given vague goals like "set that up for me."
+> **Textbook example — Gordon (Docker AI) system prompt (explicit routing branches):**
+> ```
+> If you are the best to answer the question according to your description,
+> you can answer it.
+>
+> If another agent is better for answering the question according to its
+> description, call `transfer_task` function to transfer the question to
+> that agent using the agent's ID. When transferring, do not generate any
+> text other than the function call.
+> ```
+> Every decision point has an explicit branch. No fallback to "figure it out." Notice the outcome for each path is also specified — what to call, what NOT to generate. Your Level 3 prompt follows this structure exactly: every `if yes` and `if no` names the action. Models follow explicit branches reliably; they over-think when given vague goals.
 
 ---
 
@@ -110,8 +130,22 @@ Progressive examples using this repository as the context. Each level introduces
 
 **Token delta:** No back-and-forth clarification. Single coherent execution.
 
-> **System prompt cross-reference:** [`Google/gemini-cli.md`](../../Google/gemini-cli.md) (Gemini CLI)
-> Gemini CLI's system prompt dedicates an entire section to context efficiency: *"Combine turns whenever possible by utilizing parallel searching and reading... Unnecessary turns are generally more expensive than other types of wasted context."* It lists numbered patterns: search → read → edit — exactly the stage structure of Level 4. When you number your stages in a prompt, you activate the same discipline that production system prompts enforce internally.
+> **Textbook example — Gemini CLI system prompt (stage discipline and context cost):**
+> ```
+> Combine turns whenever possible by utilizing parallel searching and reading
+> and by requesting enough context before grep_search to enable you to skip
+> using an extra turn reading the file.
+>
+> Unnecessary turns are generally more expensive than other types of
+> wasted context.
+>
+> Examples:
+> - Searching: use grep_search with a conservative result count and a narrow scope.
+> - Searching and editing: use grep_search with context/before/after to avoid
+>   reading the file before editing.
+> - Large files: use grep_search and read_file in parallel with start_line/end_line.
+> ```
+> Gemini CLI's system prompt structures every operation as: search narrow → read minimum → edit once. The Level 4 prompt mirrors this: each numbered stage minimizes extra turns by pre-specifying what to collect, what to compare, and what format to write. Numbering your stages is not style — it activates the agent's built-in efficiency mode.
 
 ---
 
@@ -156,8 +190,17 @@ Progressive examples using this repository as the context. Each level introduces
 - Might commit without verifying the files exist
 - Might push immediately after editing without a checkpoint
 
-> **System prompt cross-reference:** [`Microsoft/vscode-copilot-agent.md`](../../Microsoft/vscode-copilot-agent.md) (GitHub Copilot CLI)
-> The Copilot CLI system prompt marks this in all-caps: *"CRITICAL: USE PARALLEL TOOL CALLING — when you need to perform multiple independent operations, make ALL tool calls in a SINGLE response."* Writing *"Update README.md simultaneously"* in your prompt directly invokes this built-in capability. Without the explicit signal, the agent may default to sequential edits. The system prompt already knows how to parallelize — your prompt just needs to tell it when to.
+> **Textbook example — GitHub Copilot CLI system prompt (parallel tool calling):**
+> ```
+> CRITICAL: Maximize tool efficiency:
+> USE PARALLEL TOOL CALLING — when you need to perform multiple independent
+> operations, make ALL tool calls in a SINGLE response. For example, if you
+> need to read 3 files, make 3 Read tool calls in one response, NOT 3
+> sequential responses.
+> Chain related bash commands with && instead of separate calls.
+> Suppress verbose output (use --quiet, --no-pager, pipe to grep/head).
+> ```
+> The capability is already built in. Writing *"simultaneously"* in your prompt is the signal that unlocks it. Without that word, the agent defaults to sequential — one edit, wait for response, next edit. One word cuts three round-trips to one.
 
 ---
 
@@ -189,8 +232,12 @@ Progressive examples using this repository as the context. Each level introduces
 - Isolating it in a subagent keeps the main context clean
 - The main agent only needs the JSON array to act — not the full exploration history
 
-> **System prompt cross-reference:** [`Microsoft/vscode-copilot-agent.md`](../../Microsoft/vscode-copilot-agent.md) (GitHub Copilot CLI)
-> The same Copilot CLI system prompt notes: *"When prompting sub-agents, provide comprehensive context — brevity rules do not apply to sub-agent prompts."* Sub-agents start in a fresh session with no conversation history and no access to the files the user has open. The JSON output contract in Level 5b ensures the main agent's result is fully self-contained — everything the next step needs is in the structured return value, not in session history.
+> **Textbook example — GitHub Copilot CLI system prompt (sub-agent context rule):**
+> ```
+> When prompting sub-agents, provide comprehensive context —
+> brevity rules do not apply to sub-agent prompts.
+> ```
+> Nine words that invert the normal rule. Sub-agents start in a completely fresh session: no conversation history, no open files, no prior context. The JSON output contract in Level 5b is the application of this principle — the structured return value must be fully self-contained so the main agent can act on it without knowing anything about the sub-agent's session.
 
 ---
 
@@ -207,22 +254,22 @@ Progressive examples using this repository as the context. Each level introduces
 
 ---
 
-## Lessons Extracted from the Repo's System Prompts
+## Lessons Extracted from Real System Prompts
 
-The system prompts collected here reveal how production AI products are instructed to behave efficiently. These patterns directly inform how to write better user prompts.
+The system prompts in this collection reveal how production AI products instruct their models to operate efficiently. Each row below is a pattern drawn directly from a real prompt, paired with its user-prompt equivalent.
 
-| System Prompt | Pattern used by the model | What to do in your prompt |
+| Product | Verbatim pattern | Your prompt equivalent |
 |---|---|---|
-| [`Microsoft/vscode-copilot-agent.md`](../../Microsoft/vscode-copilot-agent.md) | "USE PARALLEL TOOL CALLING" for independent operations | Write "simultaneously" or "in parallel" when ops have no dependency |
-| [`Microsoft/vscode-copilot-agent.md`](../../Microsoft/vscode-copilot-agent.md) | "Sub-agent prompts: brevity rules do not apply" | Give subagents full self-contained context; they have no session history |
-| [`Microsoft/vscode-copilot-agent.md`](../../Microsoft/vscode-copilot-agent.md) | Tool preference order: code intelligence > LSP > glob > grep | Name the search type explicitly: "grep for X" beats "find X" |
-| [`Google/gemini-cli.md`](../../Google/gemini-cli.md) | Numbered stage discipline: understand → search → read → edit | Number your stages; the model follows explicit sequencing reliably |
-| [`Google/gemini-cli.md`](../../Google/gemini-cli.md) | "Unnecessary turns cost more than any other wasted context" | Front-load all context so no clarifying turn is needed |
-| [`Misc/docker-gordon-ai.md`](../../Misc/docker-gordon-ai.md) | BANNED WORDS: "Perfect", "Great", "Sure", "Absolutely"… | Remove prompt filler too: no "please", "feel free", "if you could" |
-| [`Misc/docker-gordon-ai.md`](../../Misc/docker-gordon-ai.md) | Intermediate messages between tool calls = `""` (empty) | "No explanation between steps. Final result only." |
-| [`Misc/docker-gordon-ai.md`](../../Misc/docker-gordon-ai.md) | Explicit routing with named agents and transfer conditions | Name the tool or file explicitly; never describe what you want the model to find |
-| [`Anthropic/claude-sonnet-5.md`](../../Anthropic/claude-sonnet-5.md) | Identity block names the exact model at the start | Start your prompt with the role/scope: "You are auditing the Google/ vendor folder for…" |
-| [`Anthropic/claude-sonnet-5.md`](../../Anthropic/claude-sonnet-5.md) | Fallback defined: "search docs.claude.com then answer from it" | Always define the fallback: "If not found in X, check Y before answering." |
+| GitHub Copilot CLI | `"USE PARALLEL TOOL CALLING — make ALL tool calls in a SINGLE response"` | Write "simultaneously" or "in parallel" for independent ops |
+| GitHub Copilot CLI | `"brevity rules do not apply to sub-agent prompts"` | Give subagents full self-contained context; they start with no history |
+| GitHub Copilot CLI | `"preference order: code intelligence > LSP > glob > grep"` | Name the search type: "grep for X" is more precise than "find X" |
+| Gemini CLI | `"Unnecessary turns are generally more expensive than other wasted context"` | Front-load all context; eliminate any prompt that needs a follow-up |
+| Gemini CLI | `"Combine turns by requesting enough context to skip an extra read"` | Number stages; each stage should produce enough output for the next |
+| Gordon (Docker AI) | `"BANNED WORDS: Perfect Great Excellent Sure Absolutely Amazing Good"` | Remove input filler: no "please", "feel free", "if you could", "thanks" |
+| Gordon (Docker AI) | `"ALL intermediate messages between tool calls MUST be \"\""` | Add: "No explanation between steps. Final result only." |
+| Gordon (Docker AI) | `"state a SPECIFIC, COMPREHENSIVE plan... not vague... specific"` | Give the exact value to insert, not a description of it |
+| Claude Sonnet 5 | `"This iteration of Claude is Claude Sonnet 5."` (identity block) | Open with the subject: "You are reviewing Anthropic/claude-sonnet-5.md" |
+| Claude Sonnet 5 | `"Claude searches docs.claude.com and answers from the documentation"` | Define the fallback explicitly: "If not found in X, search Y, then answer." |
 
 ### Key Takeaway
 
